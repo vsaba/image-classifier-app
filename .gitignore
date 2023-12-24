@@ -3,3 +3,4 @@ __pycache__/
 .idea/
 classifier/data
 classifier/.ipynb_checkpoints
+instance/project.db
