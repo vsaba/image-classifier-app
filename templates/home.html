@@ -12,4 +12,15 @@
     <br>
     <a href="{{ url_for('auth.login') }}">Already a user? Login here!</a>
 </body>
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <ul>
+            {% for message in messages %}
+                <li>
+                    {{ message }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endwith %}
 </html>

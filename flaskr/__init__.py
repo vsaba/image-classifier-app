@@ -32,6 +32,6 @@ def create_app():
 
     @login_manager.user_loader
     def load_user(user_id):
-        return db.session.execute(db.select(User).filter_by(id == user_id)).first()
+        return db.session.scalars(db.select(User).filter_by(id=int(user_id))).first()
 
     return app
