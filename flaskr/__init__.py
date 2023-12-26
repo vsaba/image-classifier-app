@@ -10,7 +10,7 @@ model.load_model("classifier/mnist_model.pt")
 
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__, template_folder="../templates")
 
     app.config['SECRET_KEY'] = 'My secret key'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///project.db'
