@@ -3,11 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <script>
+        function getRandomImage() {
+            document.getElementById("response-text").textContent = ""
+            fetch('/home/random')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("image-display").src = data["image_url"]
+                })
+                .catch(error => console.error(error))
+        }
+
+        function sendImageURL() {
+            let image_url = document.getElementById("image-display").src
+            fetch('/home/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-type': 'application/json'
+                },
+                body: JSON.stringify({imagePath: image_url})
+            })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("response-text").textContent = "The predicted number is: " + data["prediction"]
+                })
+                .catch(error => {
+                    document.getElementById("response-text").textContent = "An error has occurred with the prediction. Please try again!"
+                })
+        }
+
+        window.onload = getRandomImage
+    </script>
 </head>
 <body>
 <h1>
     Welcome to the image classifier app!
 </h1>
+<br>
+<img id="image-display" src="" style="width: 20%;height: 20%">
+<br>
+<button onclick="getRandomImage()">Generate image!</button>
+<button onclick="sendImageURL()">Predict!</button>
+<br>
+<p id="response-text"></p>
+<br>
 <a href="{{ url_for('auth.logout') }}">Log out here</a>
 {% with messages = get_flashed_messages() %}
     {% if messages %}

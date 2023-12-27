@@ -14,6 +14,7 @@ def create_app():
 
     app.config['SECRET_KEY'] = 'My secret key'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///project.db'
+    app.config['PATH_TO_IMAGES'] = "flaskr/static/images"
 
     from .user_model import User
 
