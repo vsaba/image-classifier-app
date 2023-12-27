@@ -4,11 +4,13 @@ from . import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from .user_model import User
 from .forms import RegistrationForm, LoginForm, ResetPasswordForm
+from .util.decorators import logout_required
 
 auth = Blueprint('auth', __name__, url_prefix='/auth')
 
 
 @auth.route('/register', methods=['GET', 'POST'])
+@logout_required
 def register():
     form = RegistrationForm(request.form)
     if request.method == 'POST' and form.validate():
@@ -33,6 +35,7 @@ def register():
 
 
 @auth.route('/login', methods=['GET', 'POST'])
+@logout_required
 def login():
     form = LoginForm(request.form)
     if request.method == 'POST' and form.validate():
@@ -55,7 +58,7 @@ def login():
 @login_required
 def logout():
     logout_user()
-    flash("User logged out!")
+    flash("Logged out successfully!")
     return redirect(url_for("home.home"))
 
 
