@@ -1,10 +1,11 @@
 import os
 
 from flask import Blueprint, render_template, request, url_for, jsonify, current_app, flash, redirect
-from flask_login import login_required
-from .util.decorators import logout_required
+from flask_login import login_required, current_user
+from .util.decorators import logout_required, verification_required
 import numpy as np
 from . import model
+from .util import email
 
 hm = Blueprint('home', __name__, url_prefix='/home')
 
@@ -17,6 +18,7 @@ def home():
 
 @hm.route('/app', methods=['GET'])
 @login_required
+@verification_required
 def app():
     return render_template("app.html")
 
@@ -45,3 +47,12 @@ def predict_image():
     except Exception:
         flash("An error has occurred while predicting the image")
         return url_for('home.app')
+
+
+@hm.route('/inactive', methods=['GET'])
+@login_required
+def inactive():
+    if current_user.is_verified:
+        flash("You have already verified your email address!")
+        return redirect(url_for('home.app'))
+    return render_template('inactive.html')

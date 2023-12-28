@@ -5,6 +5,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from .user_model import User
 from .forms import RegistrationForm, LoginForm, ResetPasswordForm
 from .util.decorators import logout_required
+from .util import token
+from .util.email import send_email
 
 auth = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -23,14 +25,19 @@ def register():
             return render_template("register.html", form=form)
 
         new_user = User(email=email, password=generate_password_hash(password))
-        # todo email verification
+
+        verification_token = token.generate_token(new_user.email)
+        confirm_url = url_for('auth.verify', verification_token=verification_token, _external=True)
+        html = render_template('email_body.html', confirm_url=confirm_url)
+
+        send_email(recipient=new_user.email, subject="Verify email address", body=html)
 
         db.session.add(new_user)
         db.session.commit()
 
         login_user(new_user)
-        flash("Successfully registered!")
-        return redirect(url_for("home.home"))
+        flash("Successfully registered! Please verify your email!")
+        return redirect(url_for("home.inactive"))
     return render_template("register.html", form=form)
 
 
@@ -50,7 +57,7 @@ def login():
 
         login_user(user)
         flash("Successfully logged in!")
-        return redirect(url_for("home.home"))
+        return redirect(url_for("home.app"))
     return render_template("login.html", form=form)
 
 
@@ -60,6 +67,24 @@ def logout():
     logout_user()
     flash("Logged out successfully!")
     return redirect(url_for("home.home"))
+
+
+@auth.route('/verify/<verification_token>', methods=['GET'])
+def verify(verification_token):
+    if current_user.is_verified:
+        flash("You have already verified your email address")
+        return redirect(url_for('home.app'))
+    user_email = token.verify_token(verification_token)
+    user = db.session.scalars(db.select(User).filter_by(email=user_email)).first()
+    if user.email == user_email:
+        user.is_verified = True
+        db.session.add(user)
+        db.session.commit()
+        flash("Email successfully verified. Enjoy using the app")
+        return redirect(url_for('home.app'))
+
+    flash("An error occurred while verifying. Please check your inbox and try again")
+    return redirect(url_for('home.inactive'))
 
 
 @auth.route('/reset', methods=['GET', 'POST'])

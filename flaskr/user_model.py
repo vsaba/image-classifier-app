@@ -7,3 +7,4 @@ class User(UserMixin, db.Model):
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
     email: Mapped[str] = mapped_column(db.String, unique=True)
     password: Mapped[str] = mapped_column(db.String)
+    is_verified: Mapped[bool] = mapped_column(db.Boolean, default=False)
