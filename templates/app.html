@@ -6,7 +6,12 @@
     <script>
         function getRandomImage() {
             document.getElementById("response-text").textContent = ""
-            fetch('/home/random')
+            fetch('/home/random', {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById("image-display").src = data["image_url"]

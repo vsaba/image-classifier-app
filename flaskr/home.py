@@ -1,6 +1,6 @@
 import os
 
-from flask import Blueprint, render_template, request, url_for, jsonify, current_app, flash
+from flask import Blueprint, render_template, request, url_for, jsonify, current_app, flash, redirect
 from flask_login import login_required
 from .util.decorators import logout_required
 import numpy as np
@@ -23,6 +23,9 @@ def app():
 
 @hm.route('/random', methods=['GET'])
 def random_image():
+    if request.headers.get('X-Requested-With') != 'XMLHttpRequest':
+        return redirect(url_for('home.app'))
+
     image_directory = os.listdir(current_app.config['PATH_TO_IMAGES'])
     image = image_directory[np.random.randint(0, len(image_directory))]
     image_url = url_for('static', filename='images/' + image)
