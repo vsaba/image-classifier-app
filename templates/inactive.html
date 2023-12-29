@@ -12,5 +12,16 @@
     You have not yet verified your email, please check your inbox or spam folder
     and follow the instructions in the email to verify your account!
 </p>
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <ul>
+            {% for message in messages %}
+                <li>
+                    {{ message }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endwith %}
 </body>
 </html>

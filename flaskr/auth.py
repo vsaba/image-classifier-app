@@ -3,7 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from . import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from .user_model import User
-from .forms import RegistrationForm, LoginForm, ResetPasswordForm
+from .forms import RegistrationForm, LoginForm, ResetPasswordForm, ForgotPasswordForm
 from .util.decorators import logout_required
 from .util import token
 from .util.email import send_email
@@ -27,7 +27,7 @@ def register():
         new_user = User(email=email, password=generate_password_hash(password))
 
         verification_token = token.generate_token(new_user.email)
-        confirm_url = url_for('auth.verify', verification_token=verification_token, _external=True)
+        confirm_url = url_for('auth.verify_reset', verification_token=verification_token, _external=True)
         html = render_template('email_body.html', confirm_url=confirm_url)
 
         send_email(recipient=new_user.email, subject="Verify email address", body=html)
@@ -70,7 +70,7 @@ def logout():
 
 
 @auth.route('/verify/<verification_token>', methods=['GET'])
-def verify(verification_token):
+def verify_reset(verification_token):
     if current_user.is_verified:
         flash("You have already verified your email address")
         return redirect(url_for('home.app'))
@@ -87,14 +87,40 @@ def verify(verification_token):
     return redirect(url_for('home.inactive'))
 
 
-@auth.route('/reset', methods=['GET', 'POST'])
-@login_required
-def reset_password():
+@auth.route('/forgot', methods=['GET', 'POST'])
+@logout_required
+def forgot_password():
+    form = ForgotPasswordForm(request.form)
+    if request.method == 'POST' and form.validate():
+        email = form.email.data
+        user = db.session.scalars(db.select(User).filter_by(email=email)).first()
+
+        if not user:
+            flash("Email invalid. Please try again.")
+            return render_template("forgot_password.html", form=form)
+
+        verification_token = token.generate_token(email)
+        confirm_url = url_for("auth.reset_password", verification_token=verification_token, _external=True)
+        html = render_template("email_body.html", confirm_url=confirm_url)
+        send_email(recipient=email, subject="Reset password", body=html)
+
+        flash("Email with link for password reset sent. Please check your inbox")
+        return redirect(url_for("home.home"))
+
+    return render_template("forgot_password.html", form=form)
+
+
+@auth.route('/reset/<verification_token>', methods=['GET', 'POST'])
+def reset_password(verification_token):
+    email = token.verify_token(verification_token)
+
+    if not email:
+        flash("An error occurred while validating. Please enter your email and try again")
+        return redirect(url_for("auth.forgot_password"))
+
     form = ResetPasswordForm(request.form)
     if request.method == 'POST' and form.validate():
-        user_id = int(current_user.get_id())
-        user = db.session.scalars(db.select(User).filter_by(id=user_id)).first()
-
+        user = db.session.scalars(db.select(User).filter_by(email=email)).first()
         user.password = generate_password_hash(form.password.data)
 
         db.session.add(user)
@@ -103,4 +129,4 @@ def reset_password():
         flash("Password successfully changed!")
 
         return redirect(url_for("home.home"))
-    return render_template("reset_password.html", form=form)
+    return render_template("reset_password.html", form=form, verification_token=verification_token)

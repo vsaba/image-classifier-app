@@ -20,3 +20,8 @@ class ResetPasswordForm(Form):
                                               validators.EqualTo("confirm", message="Password fields must match")])
     confirm = PasswordField("Repeat new password",
                             [validators.DataRequired(message="Repeat new password field is required")])
+
+
+class ForgotPasswordForm(Form):
+    email = StringField("E-mail", [validators.DataRequired(message="E-mail is required"),
+                                   validators.Email(message="E-mail must be in form: foo@bar.com")])
