@@ -4,3 +4,4 @@ __pycache__/
 classifier/data
 classifier/.ipynb_checkpoints
 instance/
+.ipynb_checkpoints

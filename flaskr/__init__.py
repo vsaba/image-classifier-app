@@ -12,7 +12,7 @@ mail = Mail()
 
 
 def create_app():
-    app = Flask(__name__, template_folder="../templates")
+    app = Flask(__name__)
 
     app.config['SECRET_KEY'] = 'My secret key'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///project.db'
@@ -29,19 +29,19 @@ def create_app():
 
     mail.init_app(app)
 
-    from .user_model import User
+    from flaskr.models.user_model import User
 
     db.init_app(app)
     with app.app_context():
         db.create_all()
 
-    from .auth import auth as auth_blueprint
+    from .views.auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint)
 
     login_manager.login_view = 'auth.login'
     login_manager.init_app(app)
 
-    from .home import hm as home_blueprint
+    from .views.home import hm as home_blueprint
     app.register_blueprint(home_blueprint)
 
     @login_manager.user_loader

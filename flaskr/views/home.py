@@ -2,10 +2,10 @@ import os
 
 from flask import Blueprint, render_template, request, url_for, jsonify, current_app, flash, redirect
 from flask_login import login_required, current_user
-from .util.decorators import logout_required, verification_required
+from flaskr.util.decorators import logout_required, verification_required
 import numpy as np
-from . import model
-from .util import email
+from flaskr import model
+from flaskr.util import email
 
 hm = Blueprint('home', __name__, url_prefix='/home')
 
@@ -13,14 +13,14 @@ hm = Blueprint('home', __name__, url_prefix='/home')
 @hm.route('/', methods=['GET'])
 @logout_required
 def home():
-    return render_template("home.html")
+    return render_template("/home/home.html")
 
 
 @hm.route('/app', methods=['GET'])
 @login_required
 @verification_required
 def app():
-    return render_template("app.html")
+    return render_template("/home/app.html")
 
 
 @hm.route('/random', methods=['GET'])
@@ -55,4 +55,4 @@ def inactive():
     if current_user.is_verified:
         flash("You have already verified your email address!")
         return redirect(url_for('home.app'))
-    return render_template('inactive.html')
+    return render_template('/home/inactive.html')

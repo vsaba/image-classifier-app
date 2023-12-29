@@ -1,12 +1,12 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import login_user, logout_user, login_required, current_user
-from . import db
+from flaskr import db
 from werkzeug.security import generate_password_hash, check_password_hash
-from .user_model import User
-from .forms import RegistrationForm, LoginForm, ResetPasswordForm, ForgotPasswordForm
-from .util.decorators import logout_required
-from .util import token
-from .util.email import send_email
+from flaskr.models.user_model import User
+from flaskr.models.forms import RegistrationForm, LoginForm, ResetPasswordForm, ForgotPasswordForm
+from flaskr.util.decorators import logout_required
+from flaskr.util import token
+from flaskr.util.email import send_email
 
 auth = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -22,13 +22,13 @@ def register():
         user = db.session.scalars(db.select(User).filter_by(email=email)).first()
         if user:
             flash("Provided email is already in use")
-            return render_template("register.html", form=form)
+            return render_template("/auth/register.html", form=form)
 
         new_user = User(email=email, password=generate_password_hash(password))
 
         verification_token = token.generate_token(new_user.email)
         confirm_url = url_for('auth.verify_reset', verification_token=verification_token, _external=True)
-        html = render_template('email_body.html', confirm_url=confirm_url)
+        html = render_template('/auth/email_body.html', confirm_url=confirm_url)
 
         send_email(recipient=new_user.email, subject="Verify email address", body=html)
 
@@ -38,7 +38,7 @@ def register():
         login_user(new_user)
         flash("Successfully registered! Please verify your email!")
         return redirect(url_for("home.inactive"))
-    return render_template("register.html", form=form)
+    return render_template("/auth/register.html", form=form)
 
 
 @auth.route('/login', methods=['GET', 'POST'])
@@ -53,12 +53,12 @@ def login():
 
         if user is None or not check_password_hash(user.password, password):
             flash("Credentials are incorrect. Please try again")
-            return render_template("login.html", form=form)
+            return render_template("/auth/login.html", form=form)
 
         login_user(user)
         flash("Successfully logged in!")
         return redirect(url_for("home.app"))
-    return render_template("login.html", form=form)
+    return render_template("/auth/login.html", form=form)
 
 
 @auth.route('/logout', methods=['GET'])
@@ -97,17 +97,17 @@ def forgot_password():
 
         if not user:
             flash("Email invalid. Please try again.")
-            return render_template("forgot_password.html", form=form)
+            return render_template("/auth/forgot_password.html", form=form)
 
         verification_token = token.generate_token(email)
         confirm_url = url_for("auth.reset_password", verification_token=verification_token, _external=True)
-        html = render_template("email_body.html", confirm_url=confirm_url)
+        html = render_template("/auth/email_body.html", confirm_url=confirm_url)
         send_email(recipient=email, subject="Reset password", body=html)
 
         flash("Email with link for password reset sent. Please check your inbox")
         return redirect(url_for("home.home"))
 
-    return render_template("forgot_password.html", form=form)
+    return render_template("/auth/forgot_password.html", form=form)
 
 
 @auth.route('/reset/<verification_token>', methods=['GET', 'POST'])
@@ -129,4 +129,4 @@ def reset_password(verification_token):
         flash("Password successfully changed!")
 
         return redirect(url_for("home.home"))
-    return render_template("reset_password.html", form=form, verification_token=verification_token)
+    return render_template("/auth/reset_password.html", form=form, verification_token=verification_token)

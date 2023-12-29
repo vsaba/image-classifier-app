@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column
-from . import db
+from flaskr import db
 from flask_login import UserMixin
 
 
