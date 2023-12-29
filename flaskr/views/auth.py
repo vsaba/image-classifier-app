@@ -14,6 +14,16 @@ auth = Blueprint('auth', __name__, url_prefix='/auth')
 @auth.route('/register', methods=['GET', 'POST'])
 @logout_required
 def register():
+    """
+    The register endpoint.
+
+    If request method is GET, creates the RegistrationForm and renders the html template for user registration.
+    If request method is POST, validates the form, checks if the email provided in the form already exists,
+    creates a new user, sends verification email and commits user to the database.
+    Requires user to be logged out to access the endpoint.
+
+    :return: Register template, or reroutes to inactive page if registration successful
+    """
     form = RegistrationForm(request.form)
     if request.method == 'POST' and form.validate():
         email = form.email.data
@@ -44,6 +54,15 @@ def register():
 @auth.route('/login', methods=['GET', 'POST'])
 @logout_required
 def login():
+    """
+    The login endpoint.
+
+    If request method is GET, creates the LoginForm and renders the login template.
+    If request method is POST, validates the form, verifies the provided credentials and logs in user.
+    Requires user to be logged out to access the endpoint.
+
+    :return: The login template, or if login successful reroutes to home page
+    """
     form = LoginForm(request.form)
     if request.method == 'POST' and form.validate():
         email = form.email.data
@@ -64,6 +83,13 @@ def login():
 @auth.route('/logout', methods=['GET'])
 @login_required
 def logout():
+    """
+    The logout endpoint.
+
+    Logs out the user from the session. Requires user to be logged in to access the endpoint
+
+    :return: Redirects to home endpoint
+    """
     logout_user()
     flash("Logged out successfully!")
     return redirect(url_for("home.home"))
@@ -71,6 +97,15 @@ def logout():
 
 @auth.route('/verify/<verification_token>', methods=['GET'])
 def verify_reset(verification_token):
+    """
+    The token verification endpoint.
+
+    Verifies the provided verification_token param. If verification is successful,
+    activates the user and commits the modified user to the database.
+
+    :param verification_token: The verification token to be decoded
+    :return: Redirects to home page if email confirmation is successful, otherwise redirects to inactive page.
+    """
     if current_user.is_verified:
         flash("You have already verified your email address")
         return redirect(url_for('home.app'))
@@ -90,6 +125,16 @@ def verify_reset(verification_token):
 @auth.route('/forgot', methods=['GET', 'POST'])
 @logout_required
 def forgot_password():
+    """
+    The forgot password endpoint.
+
+    If request method is GET, creates the ForgotPasswordForm and renders the form in the forgot password template.
+    If request method is POST, validates the provided for, verifies the provided data and sends an email with
+    an url for password reset.
+    Requires user to be logged out to access the endpoint.
+
+    :return: Renders the forgot password template, or redirects to the home page if POST method is used
+    """
     form = ForgotPasswordForm(request.form)
     if request.method == 'POST' and form.validate():
         email = form.email.data
@@ -112,6 +157,18 @@ def forgot_password():
 
 @auth.route('/reset/<verification_token>', methods=['GET', 'POST'])
 def reset_password(verification_token):
+    """
+    The reset password endpoint.
+
+    Verifies the provided verification token. If token decoding is not successful,
+    redirects the user to the forgot password endpoint.
+    If request method is GET, creates the ForgotPasswordForm and renders it in the forgot password template.
+    If request method is POST, validates the form, changes the password of
+    the user object and commits the new user to the database.
+
+    :param verification_token: The verification token to be decoded
+    :return: Renders the forgot password template, or if method is POST redirects to home page.
+    """
     email = token.verify_token(verification_token)
 
     if not email:

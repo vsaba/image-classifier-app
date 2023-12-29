@@ -1,10 +1,16 @@
-# todo dodati logout_required decorator sa flask-login
 from functools import wraps
 from flask import flash, redirect, url_for
 from flask_login import current_user
 
 
 def logout_required(func):
+    """
+    A decorator function that ensures the user is not logged in
+
+    :param func: The wrapped function
+    :return: The decorator
+    """
+
     @wraps(func)
     def decorated_function(*args, **kwargs):
         if current_user.is_authenticated:
@@ -16,6 +22,13 @@ def logout_required(func):
 
 
 def verification_required(func):
+    """
+    A decorator function that ensures the user verified the email address
+
+    :param func: The wrapped function
+    :return: The decorator
+    """
+
     @wraps(func)
     def decorated_function(*args, **kwargs):
         if not current_user.is_verified:

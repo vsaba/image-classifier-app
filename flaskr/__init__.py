@@ -11,6 +11,12 @@ mail = Mail()
 
 
 def create_app():
+    """
+    Factory method that creates a Flask app instance, loads configurations,
+    assigns blueprints and initializes the database
+
+    :return: The app instance
+    """
     app = Flask(__name__)
 
     app.config.from_object('config')
