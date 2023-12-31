@@ -43,4 +43,14 @@ def create_app():
     def load_user(user_id):
         return db.session.scalars(db.select(User).filter_by(id=int(user_id))).first()
 
+    from .error.error_handlers import internal_server_error_handler, forbidden_handler, unauthorized_handler, \
+        not_found_handler, method_not_allowed_handler, bad_request_handler
+
+    app.register_error_handler(400, bad_request_handler)
+    app.register_error_handler(401, unauthorized_handler)
+    app.register_error_handler(403, forbidden_handler)
+    app.register_error_handler(404, not_found_handler)
+    app.register_error_handler(405, method_not_allowed_handler)
+    app.register_error_handler(500, internal_server_error_handler)
+
     return app
