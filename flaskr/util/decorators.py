@@ -7,8 +7,8 @@ def logout_required(func):
     """
     A decorator function that ensures the user is not logged in
 
-    :param func: The wrapped function
-    :return: The decorator
+    :param func:
+    :return:
     """
 
     @wraps(func)
@@ -25,8 +25,8 @@ def verification_required(func):
     """
     A decorator function that ensures the user verified the email address
 
-    :param func: The wrapped function
-    :return: The decorator
+    :param func:
+    :return:
     """
 
     @wraps(func)

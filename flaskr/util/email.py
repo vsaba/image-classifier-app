@@ -1,6 +1,6 @@
 from flask_mail import Message
 from flaskr import mail
-from flask import url_for, render_template
+from flask import url_for, render_template, current_app
 
 
 def compose_email(verification_token, url, template_path):
@@ -21,5 +21,5 @@ def send_email(recipient, subject, body):
     msg = Message(recipients=[recipient],
                   subject=subject,
                   html=body,
-                  sender="interviewapplication98@gmail.com")
+                  sender=current_app.config['DEFAULT_APPLICATION_SENDER_EMAIL'])
     mail.send(msg)
