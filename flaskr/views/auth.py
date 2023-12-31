@@ -6,7 +6,7 @@ from flaskr.models.user_model import User
 from flaskr.models.forms import RegistrationForm, LoginForm, ResetPasswordForm, ForgotPasswordForm
 from flaskr.util.decorators import logout_required
 from flaskr.util import token
-from flaskr.util.email import send_email
+from flaskr.util.email import send_email, compose_email
 
 auth = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -37,10 +37,9 @@ def register():
         new_user = User(email=email, password=generate_password_hash(password))
 
         verification_token = token.generate_token(new_user.email)
-        confirm_url = url_for('auth.verify_reset', verification_token=verification_token, _external=True)
-        html = render_template('/auth/email_body.html', confirm_url=confirm_url)
-
-        send_email(recipient=new_user.email, subject="Verify email address", body=html)
+        body = compose_email(verification_token=verification_token, url='auth.verify_reset',
+                             template_path='/email/account_verify_email.html')
+        send_email(recipient=new_user.email, subject="Verify email address", body=body)
 
         db.session.add(new_user)
         db.session.commit()
@@ -145,9 +144,9 @@ def forgot_password():
             return render_template("/auth/forgot_password.html", form=form)
 
         verification_token = token.generate_token(email)
-        confirm_url = url_for("auth.reset_password", verification_token=verification_token, _external=True)
-        html = render_template("/auth/email_body.html", confirm_url=confirm_url)
-        send_email(recipient=email, subject="Reset password", body=html)
+        body = compose_email(verification_token=verification_token, url='auth.reset_password',
+                             template_path="/email/forgot_password_email.html")
+        send_email(recipient=email, subject="Reset password", body=body)
 
         flash("Email with link for password reset sent. Please check your inbox")
         return redirect(url_for("home.home"))

@@ -1,5 +1,13 @@
 from flask_mail import Message
 from flaskr import mail
+from flask import url_for, render_template
+
+
+def compose_email(verification_token, url, template_path):
+    confirm_url = url_for(url, verification_token=verification_token, _external=True)
+    html = render_template(template_path, confirm_url=confirm_url)
+
+    return html
 
 
 def send_email(recipient, subject, body):
