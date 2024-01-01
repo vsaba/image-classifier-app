@@ -1,4 +1,4 @@
-from itsdangerous import URLSafeTimedSerializer, BadTimeSignature
+from itsdangerous import URLSafeTimedSerializer, BadSignature
 from flask import current_app
 
 
@@ -27,7 +27,7 @@ def verify_token(token, max_age=600):
     try:
         user_id = serializer.loads(token, max_age=max_age)
         return user_id
-    except BadTimeSignature:
+    except BadSignature:
         pass
 
     return False

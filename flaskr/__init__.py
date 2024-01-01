@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask
 from classifier.model import Classifier
 from flask_sqlalchemy import SQLAlchemy
@@ -19,9 +21,10 @@ def create_app():
     """
     app = Flask(__name__)
 
-    app.config.from_object('config')
+    config_object = os.getenv('CONFIGURATION_OBJECT', default='config.Default')
+    app.config.from_object(config_object)
 
-    model.load_model("classifier/mnist_model.pt")
+    model.load_model(app.config["PATH_TO_CLASSIFIER_MODEL"])
     mail.init_app(app)
 
     from flaskr.models.user_model import User

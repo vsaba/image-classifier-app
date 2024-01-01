@@ -40,7 +40,6 @@ def register():
         body = compose_email(verification_token=verification_token, url='auth.verify_reset',
                              template_path='/email/account_verify_email.html')
         send_email(recipient=new_user.email, subject="Verify email address", body=body)
-
         db.session.add(new_user)
         db.session.commit()
 
@@ -108,17 +107,19 @@ def verify_reset(verification_token):
     if current_user.is_verified:
         flash("You have already verified your email address")
         return redirect(url_for('home.app'))
-    user_email = token.verify_token(verification_token)
-    user = db.session.scalars(db.select(User).filter_by(email=user_email)).first()
-    if user.email == user_email:
-        user.is_verified = True
-        db.session.add(user)
-        db.session.commit()
-        flash("Email successfully verified. Enjoy using the app")
-        return redirect(url_for('home.app'))
 
-    flash("An error occurred while verifying. Please check your inbox and try again")
-    return redirect(url_for('home.inactive'))
+    user_email = token.verify_token(verification_token)
+
+    if not user_email:
+        flash("An error occurred while verifying. Please check your inbox and try again")
+        return redirect(url_for('home.inactive'))
+
+    user = db.session.scalars(db.select(User).filter_by(email=user_email)).first()
+    user.is_verified = True
+    db.session.add(user)
+    db.session.commit()
+    flash("Email successfully verified. Enjoy using the app")
+    return redirect(url_for('home.app'))
 
 
 @auth.route('/forgot', methods=['GET', 'POST'])
@@ -147,7 +148,6 @@ def forgot_password():
         body = compose_email(verification_token=verification_token, url='auth.reset_password',
                              template_path="/email/forgot_password_email.html")
         send_email(recipient=email, subject="Reset password", body=body)
-
         flash("Email with link for password reset sent. Please check your inbox")
         return redirect(url_for("home.home"))
 
