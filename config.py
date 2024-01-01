@@ -28,6 +28,8 @@ class Testing(Default):
 
 class Production(Default):
     """Production configuration for the application"""
+    SQLALCHEMY_DATABASE_URI = 'postgresql://gattito:gattito1234@localhost:5432/classifier_app_db'
+
     MAIL_SERVER = 'smtp.gmail.com'
     MAIL_PORT = 465
     MAIL_USERNAME = 'interviewapplication98@gmail.com'
