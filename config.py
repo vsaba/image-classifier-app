@@ -1,3 +1,6 @@
+import os
+
+
 class Default(object):
     """
     Base configurations for application
@@ -19,4 +22,15 @@ class Default(object):
 
 
 class Testing(Default):
+    """Testing configuration for the application"""
     SQLALCHEMY_DATABASE_URI = 'sqlite:///test.db'
+
+
+class Production(Default):
+    """Production configuration for the application"""
+    MAIL_SERVER = 'smtp.gmail.com'
+    MAIL_PORT = 465
+    MAIL_USERNAME = 'interviewapplication98@gmail.com'
+    MAIL_PASSWORD = os.getenv('GMAIL_PASSKEY')
+    MAIL_USE_TLS = False
+    MAIL_USE_SSL = True
