@@ -1,0 +1,23 @@
+services:
+  server:
+    build:
+      context: .
+    ports:
+      - "5000:5000"
+
+    depends_on:
+      - db
+
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: classifier_app_db
+      POSTGRES_USER: "gattito"
+      POSTGRES_PASSWORD: "gattito1234"
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+volumes:
+  db-data:
+
