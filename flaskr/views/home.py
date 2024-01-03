@@ -5,7 +5,6 @@ from flask_login import login_required, current_user
 from flaskr.util.decorators import logout_required, verification_required
 import numpy as np
 from flaskr import model
-from flaskr.util import email
 
 hm = Blueprint('home', __name__, url_prefix='/home')
 

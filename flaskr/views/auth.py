@@ -1,12 +1,12 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import login_user, logout_user, login_required, current_user
-from flaskr import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from flaskr.models.user_model import User
 from flaskr.models.forms import RegistrationForm, LoginForm, ResetPasswordForm, ForgotPasswordForm
 from flaskr.util.decorators import logout_required
 from flaskr.util import token
 from flaskr.util.email import send_email, compose_email
+from flaskr.service.user_service import get_user_by_email, save_user
 
 auth = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -29,7 +29,8 @@ def register():
         email = form.email.data
         password = form.password.data
 
-        user = db.session.scalars(db.select(User).filter_by(email=email)).first()
+        user = get_user_by_email(email)
+
         if user:
             flash("Provided email is already in use")
             return render_template("/auth/register.html", form=form)
@@ -40,8 +41,8 @@ def register():
         body = compose_email(verification_token=verification_token, url='auth.verify_reset',
                              template_path='/email/account_verify_email.html')
         send_email(recipient=new_user.email, subject="Verify email address", body=body)
-        db.session.add(new_user)
-        db.session.commit()
+
+        save_user(new_user)
 
         login_user(new_user)
         flash("Successfully registered! Please verify your email!")
@@ -66,7 +67,7 @@ def login():
         email = form.email.data
         password = form.password.data
 
-        user = db.session.scalars(db.select(User).filter_by(email=email)).first()
+        user = get_user_by_email(email)
 
         if user is None or not check_password_hash(user.password, password):
             flash("Credentials are incorrect. Please try again")
@@ -114,10 +115,12 @@ def verify_reset(verification_token):
         flash("An error occurred while verifying. Please check your inbox and try again")
         return redirect(url_for('home.inactive'))
 
-    user = db.session.scalars(db.select(User).filter_by(email=user_email)).first()
+    user = get_user_by_email(user_email)
+
     user.is_verified = True
-    db.session.add(user)
-    db.session.commit()
+
+    save_user(user)
+
     flash("Email successfully verified. Enjoy using the app")
     return redirect(url_for('home.app'))
 
@@ -138,7 +141,8 @@ def forgot_password():
     form = ForgotPasswordForm(request.form)
     if request.method == 'POST' and form.validate():
         email = form.email.data
-        user = db.session.scalars(db.select(User).filter_by(email=email)).first()
+
+        user = get_user_by_email(email)
 
         if not user:
             flash("Email invalid. Please try again.")
@@ -148,6 +152,7 @@ def forgot_password():
         body = compose_email(verification_token=verification_token, url='auth.reset_password',
                              template_path="/email/forgot_password_email.html")
         send_email(recipient=email, subject="Reset password", body=body)
+
         flash("Email with link for password reset sent. Please check your inbox")
         return redirect(url_for("home.home"))
 
@@ -176,13 +181,12 @@ def reset_password(verification_token):
 
     form = ResetPasswordForm(request.form)
     if request.method == 'POST' and form.validate():
-        user = db.session.scalars(db.select(User).filter_by(email=email)).first()
+        user = get_user_by_email(email)
+
         user.password = generate_password_hash(form.password.data)
 
-        db.session.add(user)
-        db.session.commit()
+        save_user(user)
 
         flash("Password successfully changed!")
-
         return redirect(url_for("home.home"))
     return render_template("/auth/reset_password.html", form=form, verification_token=verification_token)
